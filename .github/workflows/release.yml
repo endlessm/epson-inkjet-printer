@@ -1,0 +1,29 @@
+name: Publish release
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  build:
+    name: Publish binaries
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -qq debhelper libcups2-dev
+    - uses: actions/checkout@v2
+    - name: Build
+      run: fakeroot debian/rules binary
+    - name: Upload binaries to release
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: ../*.deb
+        file_glob: true
+        tag: deb_packages_${{ github.ref }}
+        overwrite: true
+        body: "Release with generated deb packages"
